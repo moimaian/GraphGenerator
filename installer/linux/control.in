@@ -1,0 +1,20 @@
+Package: graphgenerator
+Version: @VERSION@
+Section: science
+Priority: optional
+Architecture: all
+Maintainer: Moisés Maia Neto <moimaian@gmail.com>
+Installed-Size: @SIZE@
+Depends: python3 (>= 3.9), python3-pip
+Recommends: python3-pyside6, python3-numpy, python3-pandas, python3-matplotlib, python3-seaborn, python3-openpyxl
+Homepage: https://github.com/moimaian
+Description: Generate charts (1D/2D/3D) from CSV/XLSX data
+ GraphGenerator turns a CSV or XLSX table into a chart: bar, line, scatter,
+ stacked/overlapped area, box, violin, histogram, density, heatmap and
+ numeric 2D/3D scatter, with trendlines, legends, color palettes and
+ export to PNG/JPG/TIFF/PDF/EPS/SVG at a chosen DPI.
+ .
+ The program is written in Python + PySide6 (Qt). This package installs the
+ application in /usr/share/graphgenerator, creates the Menu and Desktop
+ shortcut and, if necessary, installs its Python dependencies (PySide6,
+ numpy, pandas, matplotlib, seaborn, openpyxl) via pip.

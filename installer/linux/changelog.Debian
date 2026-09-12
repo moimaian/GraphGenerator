@@ -1,0 +1,7 @@
+graphgenerator (0.1.0-1) unstable; urgency=low
+
+  * Primeiro pacote .deb do GraphGenerator (installer/build_deb.sh,
+    installer/linux/*, README.md, LICENSE). Sem mudança de código do
+    programa em relação à versão em desenvolvimento.
+
+ -- Moisés Maia Neto <moimaian@gmail.com>  Sat, 12 Sep 2026 00:00:00 +0000

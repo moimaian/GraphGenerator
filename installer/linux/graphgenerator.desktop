@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=GraphGenerator
+GenericName=Chart generator
+Comment=Generate charts (1D/2D/3D) from CSV/XLSX data
+Comment[pt]=Gera gráficos (1D/2D/3D) a partir de dados CSV/XLSX
+Exec=graphgenerator
+Path=/usr/share/graphgenerator
+Icon=graphgenerator
+Terminal=false
+Categories=Science;Education;Utility;
+Keywords=chart;graph;plot;csv;xlsx;data;grafico;dados;
+X-GNOME-Keywords=chart;graph;plot;grafico;dados;
+StartupNotify=true
+StartupWMClass=graphgenerator

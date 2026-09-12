@@ -1,0 +1,73 @@
+#!/bin/sh
+# postinst do pacote graphgenerator:
+#  1. garante PySide6 >= 6.5 e as demais libs Python (via pip, se as libs do
+#     sistema nao servirem);
+#  2. atualiza os caches de icones / .desktop;
+#  3. cria o atalho na Area de Trabalho do usuario que instalou.
+set -e
+
+DESKTOP_SYS=/usr/share/applications/graphgenerator.desktop
+
+have_pyside() {
+    python3 - <<'PY'
+import sys
+try:
+    import PySide6
+    maj, minr = (int(x) for x in PySide6.__version__.split(".")[:2])
+except Exception:
+    sys.exit(1)
+sys.exit(0 if (maj, minr) >= (6, 5) else 1)
+PY
+}
+
+have_libs() {
+    python3 -c "import numpy, pandas, matplotlib, seaborn, openpyxl" >/dev/null 2>&1
+}
+
+pip_install() {
+    python3 -m pip install --upgrade "$@" \
+      || python3 -m pip install --upgrade --break-system-packages "$@"
+}
+
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ]; then
+    # --- 1. dependencias Python ------------------------------------------
+    if ! have_pyside; then
+        echo "GraphGenerator: instalando PySide6>=6.5 (pip)..."
+        pip_install "PySide6>=6.5" \
+          || echo "GraphGenerator: NAO consegui instalar o PySide6. Rode:  python3 -m pip install 'PySide6>=6.5'"
+    fi
+    if ! have_libs; then
+        echo "GraphGenerator: instalando numpy/pandas/matplotlib/seaborn/openpyxl (pip)..."
+        pip_install numpy pandas matplotlib seaborn openpyxl \
+          || echo "GraphGenerator: NAO consegui instalar todas as dependencias. Rode:  python3 -m pip install numpy pandas matplotlib seaborn openpyxl"
+    fi
+
+    # --- 2. caches do desktop ---------------------------------------
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -q -f -t /usr/share/icons/hicolor 2>/dev/null || true
+    fi
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database -q /usr/share/applications 2>/dev/null || true
+    fi
+
+    # --- 3. atalho na Area de Trabalho + em /etc/skel ------------
+    install -d -m 0755 /etc/skel/Desktop
+    cp -f "$DESKTOP_SYS" /etc/skel/Desktop/GraphGenerator.desktop
+    chmod 0755 /etc/skel/Desktop/GraphGenerator.desktop
+
+    if [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "root" ]; then
+        USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+        if [ -n "$USER_HOME" ] && [ -d "$USER_HOME" ]; then
+            DESK=$(su "$SUDO_USER" -c 'xdg-user-dir DESKTOP' 2>/dev/null || true)
+            { [ -n "$DESK" ] && [ -d "$DESK" ]; } || DESK="$USER_HOME/Desktop"
+            [ -d "$DESK" ] || DESK="$USER_HOME/Área de Trabalho"
+            mkdir -p "$DESK"
+            cp -f "$DESKTOP_SYS" "$DESK/GraphGenerator.desktop"
+            chown "$SUDO_USER": "$DESK/GraphGenerator.desktop" 2>/dev/null || true
+            chmod 0755 "$DESK/GraphGenerator.desktop"
+            su "$SUDO_USER" -c "gio set '$DESK/GraphGenerator.desktop' metadata::trusted true" 2>/dev/null || true
+        fi
+    fi
+fi
+
+exit 0

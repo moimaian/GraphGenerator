@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    rm -f /etc/skel/Desktop/GraphGenerator.desktop
+
+    # atalhos criados na Area de Trabalho dos usuarios
+    for home in /home/* /root; do
+        [ -d "$home" ] || continue
+        rm -f "$home/Desktop/GraphGenerator.desktop" \
+              "$home/Área de Trabalho/GraphGenerator.desktop" 2>/dev/null || true
+    done
+
+    # venv/bytecode que o proprio app pode ter criado em tempo de execucao
+    find /usr/share/graphgenerator -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
+    rm -rf /usr/share/graphgenerator/GraphGenerator 2>/dev/null || true
+    rmdir /usr/share/graphgenerator 2>/dev/null || true
+
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -q -f -t /usr/share/icons/hicolor 2>/dev/null || true
+    fi
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database -q /usr/share/applications 2>/dev/null || true
+    fi
+fi
+
+exit 0
