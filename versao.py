@@ -23,4 +23,4 @@ podem sair como MINOR, mas devem ser destacadas na descrição da mudança. A
 primeira release considerada estável será a 1.0.0.
 """
 
-VERSAO = "0.1.0-1"
+VERSAO = "0.1.1-1"

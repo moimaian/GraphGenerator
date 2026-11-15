@@ -33,16 +33,28 @@ sudo apt install ./GraphGenerator.deb
 
 Installs the app under `/usr/share/graphgenerator/`, a
 `/usr/bin/graphgenerator` launcher, the menu entry with icons, and a Desktop
-shortcut. If the system doesn't already have `PySide6 >= 6.5`, `numpy`,
-`pandas`, `matplotlib`, `seaborn` and `openpyxl`, the package installs them
-with pip.
+shortcut. **It needs internet access once, during installation:** the
+`postinst` builds a private virtual environment in
+`/usr/lib/graphgenerator/venv` and downloads `PySide6`, `numpy`, `pandas`,
+`matplotlib`, `seaborn` and `openpyxl` into it from PyPI. The system Python
+is never touched, so it works on distros that block global `pip install`
+(PEP 668: Ubuntu 23.04+/24.04, Debian 12+). Requires `python3 >= 3.10` and
+`python3-venv` (pulled in automatically, along with the Qt system libraries
+such as `libxcb-cursor0`).
 
-To rebuild it yourself: `installer/build_deb.sh` (writes
+If you installed offline (or that download failed), the app tells you when
+you try to open it; fix it later, with internet, by running:
+
+```bash
+sudo graphgenerator-setup
+```
+
+To rebuild the package yourself: `installer/build_deb.sh` (writes
 `./GraphGenerator.deb`).
 
 ### Run from source
 
-Requires **Python 3.9+**:
+Requires **Python 3.10+**:
 
 ```bash
 pip install --user -r requirements.txt
@@ -55,11 +67,9 @@ any Python 3) also works standalone, without `requirements.txt`: the script
 `GraphGenerator/` venv next to itself (needs Python **3.10** available as
 `python3.10`), installs every dependency into it, and re-executes itself
 inside that venv. This only happens when the script's own folder is
-writable (e.g. running straight from a git checkout); when it isn't (a
-system install like the `.deb` above), it silently falls back to the
-current Python interpreter instead, which is why the `.deb` installs
-dependencies system-wide via `postinst` rather than relying on that
-private venv.
+writable (e.g. running straight from a git checkout). The `.deb` doesn't
+rely on it: its launcher already runs the app from the venv built at
+install time, and the script detects it is inside a venv and does nothing.
 
 ### Windows
 
@@ -127,7 +137,7 @@ estilo.py              light/dark palettes + class-based QSS
 Midia/
   GraphGenerator_Icon.png   app icon (header, window, Menu/Desktop shortcut)
 installer/                        scripts that BUILD the installer (not the installer itself)
-  build_deb.sh, linux/            Linux .deb packaging
+  build_deb.sh, linux/            Linux .deb packaging (linux/graphgenerator-setup builds the venv)
   VERSIONING.md                   MAJOR/MINOR/PATCH rules + changelog sync
 GraphGenerator.deb                ready-to-use Linux installer (built by installer/build_deb.sh)
 requirements.txt                  pip dependencies for running from source

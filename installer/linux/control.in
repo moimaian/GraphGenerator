@@ -5,8 +5,7 @@ Priority: optional
 Architecture: all
 Maintainer: Moisés Maia Neto <moimaian@gmail.com>
 Installed-Size: @SIZE@
-Depends: python3 (>= 3.9), python3-pip
-Recommends: python3-pyside6, python3-numpy, python3-pandas, python3-matplotlib, python3-seaborn, python3-openpyxl
+Depends: python3 (>= 3.10), python3-venv, libgl1, libegl1, libfontconfig1, libdbus-1-3, libxkbcommon0, libxkbcommon-x11-0, libxcb-cursor0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render-util0, libxcb-shape0, libxcb-xinerama0, libxcb-xkb1
 Homepage: https://github.com/moimaian
 Description: Generate charts (1D/2D/3D) from CSV/XLSX data
  GraphGenerator turns a CSV or XLSX table into a chart: bar, line, scatter,
@@ -16,5 +15,7 @@ Description: Generate charts (1D/2D/3D) from CSV/XLSX data
  .
  The program is written in Python + PySide6 (Qt). This package installs the
  application in /usr/share/graphgenerator, creates the Menu and Desktop
- shortcut and, if necessary, installs its Python dependencies (PySide6,
- numpy, pandas, matplotlib, seaborn, openpyxl) via pip.
+ shortcut and, at install time, builds a private Python virtual environment
+ (/usr/lib/graphgenerator/venv) with PySide6, numpy, pandas, matplotlib,
+ seaborn and openpyxl downloaded from PyPI, so it needs internet access
+ once and never touches the system Python packages.

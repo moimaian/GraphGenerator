@@ -1,3 +1,19 @@
+graphgenerator (0.1.1-1) unstable; urgency=low
+
+  * Corrige a instalacao em distros com Python "externally-managed" (PEP
+    668: Ubuntu 23.04+/24.04, Debian 12+), onde o postinst nao conseguia
+    instalar pandas/PySide6 no Python do sistema e o programa nao abria.
+    Agora o postinst cria um venv proprio em /usr/lib/graphgenerator/venv
+    (novo comando graphgenerator-setup) e o launcher usa esse venv. Depende
+    de python3-venv e das bibliotecas de sistema do Qt (libxcb-cursor0 etc.);
+    python3 >= 3.10 (o codigo usa anotacoes "X | None").
+  * graphgenerator.desktop: Icon com caminho absoluto (o menu nao dependia
+    mais do cache de icones); GraphGenerator.py: setDesktopFileName para o
+    icone aparecer na barra de tarefas/dock (installer/linux/*, build_deb.sh,
+    GraphGenerator.py).
+
+ -- Moisés Maia Neto <moimaian@gmail.com>  Fri, 30 Oct 2026 00:00:00 +0000
+
 graphgenerator (0.1.0-1) unstable; urgency=low
 
   * Primeiro pacote .deb do GraphGenerator (installer/build_deb.sh,

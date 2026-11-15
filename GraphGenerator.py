@@ -3249,6 +3249,9 @@ def main():
     app.setStyle("Fusion")
     app.setApplicationName(APP_NAME)
     app.setApplicationDisplayName(APP_NAME)
+    # liga a janela ao graphgenerator.desktop (ícone na barra de tarefas/dock,
+    # principalmente em Wayland)
+    app.setDesktopFileName("graphgenerator")
 
     icon_path = os.path.join(_script_dir(), MIDIA_DIRNAME, ICON_FILENAME)
     if os.path.exists(icon_path):

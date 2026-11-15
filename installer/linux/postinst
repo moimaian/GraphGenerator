@@ -1,46 +1,19 @@
 #!/bin/sh
 # postinst do pacote graphgenerator:
-#  1. garante PySide6 >= 6.5 e as demais libs Python (via pip, se as libs do
-#     sistema nao servirem);
+#  1. cria o venv proprio do app (PySide6, numpy, pandas, matplotlib, ...) em
+#     /usr/lib/graphgenerator/venv — nao mexe no Python do sistema;
 #  2. atualiza os caches de icones / .desktop;
 #  3. cria o atalho na Area de Trabalho do usuario que instalou.
 set -e
 
 DESKTOP_SYS=/usr/share/applications/graphgenerator.desktop
 
-have_pyside() {
-    python3 - <<'PY'
-import sys
-try:
-    import PySide6
-    maj, minr = (int(x) for x in PySide6.__version__.split(".")[:2])
-except Exception:
-    sys.exit(1)
-sys.exit(0 if (maj, minr) >= (6, 5) else 1)
-PY
-}
-
-have_libs() {
-    python3 -c "import numpy, pandas, matplotlib, seaborn, openpyxl" >/dev/null 2>&1
-}
-
-pip_install() {
-    python3 -m pip install --upgrade "$@" \
-      || python3 -m pip install --upgrade --break-system-packages "$@"
-}
-
 if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ]; then
-    # --- 1. dependencias Python ------------------------------------------
-    if ! have_pyside; then
-        echo "GraphGenerator: instalando PySide6>=6.5 (pip)..."
-        pip_install "PySide6>=6.5" \
-          || echo "GraphGenerator: NAO consegui instalar o PySide6. Rode:  python3 -m pip install 'PySide6>=6.5'"
-    fi
-    if ! have_libs; then
-        echo "GraphGenerator: instalando numpy/pandas/matplotlib/seaborn/openpyxl (pip)..."
-        pip_install numpy pandas matplotlib seaborn openpyxl \
-          || echo "GraphGenerator: NAO consegui instalar todas as dependencias. Rode:  python3 -m pip install numpy pandas matplotlib seaborn openpyxl"
-    fi
+    # --- 1. ambiente Python (precisa de internet) ----------------------
+    # Se falhar (ex.: instalacao offline), o pacote continua instalado e o
+    # usuario resolve depois com:  sudo graphgenerator-setup
+    graphgenerator-setup \
+      || echo "GraphGenerator: NAO consegui preparar o ambiente Python. Com internet, rode:  sudo graphgenerator-setup"
 
     # --- 2. caches do desktop ---------------------------------------
     if command -v gtk-update-icon-cache >/dev/null 2>&1; then

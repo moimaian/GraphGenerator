@@ -1,0 +1,39 @@
+#!/bin/sh
+# Cria (ou repara) o ambiente Python proprio do GraphGenerator.
+#
+#   sudo graphgenerator-setup
+#
+# Chamado automaticamente pelo postinst do pacote. Usa um venv dedicado em
+# /usr/lib/graphgenerator/venv em vez do Python do sistema: distros recentes
+# (Debian 12+, Ubuntu 23.04+) bloqueiam "pip install" global (PEP 668), e
+# mexer nos pacotes do sistema podia quebrar outros programas. Precisa de
+# internet (baixa PySide6, numpy, pandas, matplotlib, seaborn, openpyxl).
+#
+# GRAPHGENERATOR_VENV muda o destino (usado em testes, sem precisar de root).
+set -e
+
+VENV="${GRAPHGENERATOR_VENV:-/usr/lib/graphgenerator/venv}"
+OK="$VENV/.graphgenerator-ok"
+# PySide6-Essentials traz QtCore/QtGui/QtWidgets (tudo que o app usa) sem os
+# modulos extras do PySide6 completo (~150 MB a menos).
+PKGS="PySide6-Essentials numpy pandas matplotlib seaborn openpyxl"
+CHECK="import PySide6.QtWidgets, numpy, pandas, matplotlib, seaborn, openpyxl"
+
+if [ -z "${GRAPHGENERATOR_VENV:-}" ] && [ "$(id -u)" != "0" ]; then
+    echo "graphgenerator-setup: rode como root:  sudo graphgenerator-setup" >&2
+    exit 1
+fi
+
+if [ -f "$OK" ] && "$VENV/bin/python3" -c "$CHECK" >/dev/null 2>&1; then
+    exit 0
+fi
+
+echo "GraphGenerator: preparando o ambiente Python (pode levar alguns minutos)..."
+rm -rf "$VENV"
+mkdir -p "$(dirname "$VENV")"
+python3 -m venv "$VENV"
+"$VENV/bin/python3" -m pip install --no-cache-dir $PKGS
+"$VENV/bin/python3" -c "$CHECK"
+chmod -R a+rX "$VENV"
+touch "$OK"
+echo "GraphGenerator: ambiente pronto em $VENV"

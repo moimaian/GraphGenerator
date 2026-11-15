@@ -54,15 +54,29 @@ find "$STAGE$APP" -name __pycache__ -type d -prune -exec rm -rf {} +
 find "$STAGE$APP" -name '*.pyc' -delete
 
 # --- lançador /usr/bin/graphgenerator ---------------------------------
-# Roda com o python3 do sistema (não o bootstrap de venv privado do próprio
-# GraphGenerator.py — esse continua existindo para quem roda direto do
-# código-fonte, mas aqui as dependências já foram garantidas pelo postinst,
-# e o script detecta que não pode escrever em /usr/share e cai de volta
-# para o python3 atual automaticamente).
+# Roda com o python do venv criado pelo postinst (graphgenerator-setup), não
+# com o python3 do sistema: distros recentes bloqueiam "pip install" global
+# (PEP 668). Dentro de um venv, o bootstrap embutido no GraphGenerator.py
+# (que serve a quem roda direto do código-fonte) detecta que já está num
+# ambiente isolado e não faz mais nada.
 cat > "$STAGE/usr/bin/graphgenerator" <<EOF
 #!/bin/sh
-exec python3 $APP/GraphGenerator.py "\$@"
+VENV=/usr/lib/graphgenerator/venv
+if [ ! -f "\$VENV/.graphgenerator-ok" ]; then
+    MSG="GraphGenerator: o ambiente Python ainda nao foi preparado. Com internet, rode no terminal:  sudo graphgenerator-setup"
+    echo "\$MSG" >&2
+    if [ -n "\${DISPLAY:-}\${WAYLAND_DISPLAY:-}" ]; then
+        if command -v zenity >/dev/null 2>&1; then zenity --error --no-markup --text="\$MSG" 2>/dev/null || true
+        elif command -v notify-send >/dev/null 2>&1; then notify-send "GraphGenerator" "\$MSG" || true
+        fi
+    fi
+    exit 1
+fi
+exec "\$VENV/bin/python3" $APP/GraphGenerator.py "\$@"
 EOF
+
+# --- graphgenerator-setup (cria/repara o venv; chamado pelo postinst) ---
+install -m 0755 "$LIN/graphgenerator-setup" "$STAGE/usr/bin/graphgenerator-setup"
 
 # --- .desktop (Menu) -----------------------------------------------
 cp "$LIN/graphgenerator.desktop" "$STAGE/usr/share/applications/graphgenerator.desktop"
@@ -78,7 +92,7 @@ gzip -9 -n -c "$LIN/changelog.Debian" > "$STAGE/usr/share/doc/graphgenerator/cha
 # --- permissões conforme a policy -----------------------------
 find "$STAGE" -type d -exec chmod 0755 {} +
 find "$STAGE" -type f -exec chmod 0644 {} +
-chmod 0755 "$STAGE/usr/bin/graphgenerator" "$STAGE$APP/GraphGenerator.py"
+chmod 0755 "$STAGE/usr/bin/graphgenerator" "$STAGE/usr/bin/graphgenerator-setup" "$STAGE$APP/GraphGenerator.py"
 
 # --- DEBIAN/control + scripts -------------------------------
 SIZE_KB="$(du -sk "$STAGE" | cut -f1)"
